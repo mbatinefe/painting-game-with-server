@@ -29,21 +29,17 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.awt.FlowLayout;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
-import java.awt.MediaTracker;
 import javax.swing.JScrollPane;
 import javax.swing.JToggleButton;
 import javax.swing.SwingUtilities;
@@ -59,6 +55,7 @@ enum PaintMode {
 //TODO: Set Screen size
 
 public class UI extends JFrame {
+	
 	private JComboBox<String> gridSizeComboBox;
 	private String selectedSize = "50x50";
 	private JPanel gridPanel;
@@ -141,6 +138,10 @@ public class UI extends JFrame {
 					break;
 				case 4:
 					receiveUserNumber(in);
+					break;
+				case 5:
+					receiveGridNumber(in);
+					break;
 				default:
 					// others
 				}
@@ -149,7 +150,21 @@ public class UI extends JFrame {
 			ex.printStackTrace(); // for debugging DELETE LATER
 		}
 	}
+	
+	private void receiveGridNumber(DataInputStream in) throws IOException {
 
+		int m = in.readInt();
+		System.out.println("Selam " + m);
+		selectedSize = m+"x"+m;
+
+        int[][]temp = new int[m][m];
+    	data = temp;
+    	System.out.println("Selam#### " + m);
+    	// Basically just f5 the board. 
+    	paintPanel.setVisible(false);
+    	paintPanel.setVisible(true);
+		
+	}
   
 	private void receiveUserNumber(DataInputStream in) throws IOException {
 		userNumber = in.readInt();
@@ -173,7 +188,7 @@ public class UI extends JFrame {
 					out.writeInt(i);
 					out.writeInt(j);
 					out.flush();
-
+					
 				} catch (IOException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace(); // REMOVE WHEN U FINISH, ONLY DEBUG
@@ -181,7 +196,17 @@ public class UI extends JFrame {
                
             }
         }
-		
+        try {
+    		// Send grid info as well.
+    		out.writeInt(3);
+    		out.writeInt(rowClear);
+    		out.flush();
+			
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace(); // REMOVE WHEN U FINISH, ONLY DEBUG
+		}
+
 	}
 	
 	
@@ -214,14 +239,6 @@ public class UI extends JFrame {
 		paintArea(color, x, y);
 	}
 
-	private String[] generateGridSizeOptions(int start, int end) {
-	    String[] options = new String[end - start + 1];
-	    for (int i = start; i <= end; i++) {
-	        options[end - i] = i + "x" + i;
-	    }
-	    return options;
-	}
-	
 	/**
 	 * private constructor. To create an instance of UI, call UI.getInstance()
 	 * instead.
@@ -236,36 +253,8 @@ public class UI extends JFrame {
 		getContentPane().add(basePanel, BorderLayout.CENTER);
 		basePanel.setLayout(new BorderLayout(0, 0));
 		
-		// ADD GRID
-		gridPanel = new JPanel();
-	    getContentPane().add(gridPanel, BorderLayout.NORTH);	    
-	    gridPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 10, 10));
 
-	    // Create a dropdown button with grid size options
-        String[] gridSizeOptions = generateGridSizeOptions(3, 50);
-        gridSizeComboBox = new JComboBox<>(gridSizeOptions);
-        gridPanel.add(new JLabel("Select Grid Size:"));
-        gridPanel.add(gridSizeComboBox);
-        
-        // Add an item listener to detect changes in selection
-        gridSizeComboBox.addItemListener(new ItemListener() {
-            @Override
-            public void itemStateChanged(ItemEvent e) {
-                if (e.getStateChange() == ItemEvent.SELECTED) {
-                    selectedSize = (String) gridSizeComboBox.getSelectedItem();
-                    // Split the string using 'x' as the delimiter
-                    String[] parts = selectedSize.split("x");
-                    // Extract the first part and convert it to an integer
-                    int xx = Integer.parseInt(parts[0]);
-                    int yy = xx;
-                    
-                    System.out.println("Selected size: "+ xx + "x" + yy);
-                    int[][]temp = new int[xx][yy];
-                	data = temp;
-                }
-            }
-        });  
-
+         
 		// ADD USERNAME
 		// TODO Add Change Username Option
 	    usernamePanel = new JPanel();
@@ -294,6 +283,7 @@ public class UI extends JFrame {
 
 	            	sendMsg(newUsername);
 	            	
+
 	                // Show components after sending the message
 	                setPanelVisibility(true);
 
@@ -310,7 +300,7 @@ public class UI extends JFrame {
 	    usernamePanel.add(changeUsernameButton); 
 	    // END OF USERNAME PANEL
 
-	    
+
 		paintPanel = new JPanel() {
 			// refresh the paint panel
 			@Override
@@ -546,6 +536,7 @@ public class UI extends JFrame {
 		tglBucket = new JToggleButton("Bucket");
 		toolPanel.add(tglBucket);
 
+
 		// change the paint mode to PIXEL mode
 		tglPen.addActionListener(new ActionListener() {
 			@Override
@@ -565,6 +556,45 @@ public class UI extends JFrame {
 				paintMode = PaintMode.Area;
 			}
 		});
+		
+    	// ADD GRID
+ 		gridPanel = new JPanel();	    
+ 	    // Create a dropdown button with grid size options
+         String[] gridSizeOptions = generateGridSizeOptions(3, 50);
+         gridSizeComboBox = new JComboBox<>(gridSizeOptions);
+         gridPanel.add(gridSizeComboBox);
+         
+  	    toolPanel.add(gridPanel, BorderLayout.NORTH);
+
+         // Add an item listener to detect changes in selection
+         gridSizeComboBox.addItemListener(new ItemListener() {
+             @Override
+             public void itemStateChanged(ItemEvent e) {
+                 if (e.getStateChange() == ItemEvent.SELECTED) {
+                     selectedSize = (String) gridSizeComboBox.getSelectedItem();
+                     // Split the string using 'x' as the delimiter
+                     String[] parts = selectedSize.split("x");
+                     // Extract the first part and convert it to an integer
+                     int xx = Integer.parseInt(parts[0]);
+                     int yy = xx;
+                     
+                     System.out.println("Selected size: "+ xx + "x" + yy);
+                     int[][]temp = new int[xx][yy];
+                 	 data = temp;
+                 	 
+                 	 try {
+                 		 // Send it to the server
+						out.writeInt(3);
+						out.writeInt(xx);	
+					} catch (IOException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+                 	 
+                 }
+             }
+         }); 
+	    
 
 		JPanel msgPanel = new JPanel();
 
@@ -630,7 +660,15 @@ public class UI extends JFrame {
         JFileChooser fileChooser = new JFileChooser();
         if (fileChooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
             try (DataOutputStream dos = new DataOutputStream(new FileOutputStream(fileChooser.getSelectedFile()))) {
-                // Serialize and write the pixel data array
+                
+                // Display grid size information before saving
+                System.out.println("Saving image data with grid size information...");
+
+                // Write the grid size to the file
+                dos.writeInt(data.length);  // Assuming data is a 2D array
+                dos.writeInt(data[0].length);
+                
+            	// Serialize and write the pixel data array
                 writeIntArray2D(dos, data);
                 // Write the block size
                 dos.writeInt(blockSize);
@@ -681,33 +719,49 @@ public class UI extends JFrame {
         JFileChooser fileChooser = new JFileChooser();
         if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
             try (DataInputStream dis = new DataInputStream(new FileInputStream(fileChooser.getSelectedFile()))) {
-                // Deserialize and read the pixel data array
-                int[][] dataUpload = readIntArray2D(dis);
+                
+                // Read and display the grid size information
+                int rowClear = dis.readInt();
+                int colClear = dis.readInt();
+                System.out.println("Grid Size: " + rowClear + "x" + colClear);
+                
                 // Split the string using 'x' as the delimiter
                 String[] parts = selectedSize.split("x");
                 // Extract the first part and convert it to an integer
-                int rowClear = Integer.parseInt(parts[0]);
-                int colClear = rowClear;
-            	data = dataUpload;
-                for (int i = 0; i < rowClear; i++) {
-                    for (int j = 0; j < colClear; j++) {
-                        paintPanel.repaint();
-                        try {
-        					// Send the pixel data to the server instead of updating the screen
-        					out.writeInt(1);
-        					out.writeInt(data[i][j]);
-        					out.writeInt(i);
-        					out.writeInt(j);
-        					out.flush();
-
-        				} catch (IOException e1) {
-        					// TODO Auto-generated catch block
-        					e1.printStackTrace(); // REMOVE WHEN U FINISH, ONLY DEBUG
-        				}
-                       
-                    }
+                int rowCurrent = Integer.parseInt(parts[0]);
+               
+                // give warning
+                if(rowClear == rowCurrent) {	
+	            	// Deserialize and read the pixel data array
+	                int[][] dataUpload = readIntArray2D(dis);
+	                // Split the string using 'x' as the delimiter
+	
+	            	data = dataUpload;
+	                for (int i = 0; i < rowClear; i++) {
+	                    for (int j = 0; j < colClear; j++) {
+	                        paintPanel.repaint();
+	                        try {
+	        					// Send the pixel data to the server instead of updating the screen
+	        					out.writeInt(1);
+	        					out.writeInt(data[i][j]);
+	        					out.writeInt(i);
+	        					out.writeInt(j);
+	        					out.flush();
+	
+	        				} catch (IOException e1) {
+	        					// TODO Auto-generated catch block
+	        					e1.printStackTrace(); // REMOVE WHEN U FINISH, ONLY DEBUG
+	        				}
+	                       
+	                    }
+	                }
+                } else {
+                	// Show a warning dialog
+                    JOptionPane.showMessageDialog(null, "Warning: The grid size does not match the current ("+selectedSize +") grid size. \t"
+                    		+ "Please change it to " + rowClear + "x"+rowClear+".", "Warning", JOptionPane.WARNING_MESSAGE);
+         
                 }
-                
+
                 System.out.println("Image data uploaded successfully.");
             } catch (IOException ex) {
                 ex.printStackTrace();
@@ -969,7 +1023,16 @@ public class UI extends JFrame {
 	        throw e;
 	     }
 	}
-
+	
+	// Add grid size options as string
+	private String[] generateGridSizeOptions(int start, int end) {
+	    String[] options = new String[end - start + 1];
+	    for (int i = start; i <= end; i++) {
+	        options[end - i] = i + "x" + i;
+	    }
+	    return options;
+	}
+	
 	// Set visibility of components method
 	private void setPanelVisibility(boolean visible) {
 	    paintPanel.setVisible(visible);
@@ -980,39 +1043,21 @@ public class UI extends JFrame {
 	    scrollPaneLeft.setVisible(visible);
 	    scrollPaneRight.setVisible(visible);
 
+	    gridPanel.setVisible(visible);
 		saveButton.setVisible(visible);
 		uploadButton.setVisible(visible);
 		eraserButton.setVisible(visible);
 		clearButton.setVisible(visible);
 		
+
 		usernamePanel.setVisible(!visible);
-
 	}
-	
-	// Set visibility of components method
-	private void setGridVisibility(boolean visible) {
-	    paintPanel.setVisible(visible);
-	    pnlColorPicker.setVisible(visible);
-	    tglPen.setVisible(visible);
-	    tglBucket.setVisible(visible);
-	    msgField.setVisible(visible);
-	    scrollPaneLeft.setVisible(visible);
-	    scrollPaneRight.setVisible(visible);
 
-		saveButton.setVisible(visible);
-		uploadButton.setVisible(visible);
-		eraserButton.setVisible(visible);
-		clearButton.setVisible(visible);
-		
-		usernamePanel.setVisible(visible);
-		gridPanel.setVisible(!visible);
-		
-
-	}
 	
 	public void setData(int[][] data, int blockSize) {
 		this.data = data;
 		this.blockSize = blockSize;
+		
 		paintPanel.setPreferredSize(new Dimension(data.length * blockSize, data[0].length * blockSize));
 		paintPanel.repaint();
 	}
