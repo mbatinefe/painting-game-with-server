@@ -59,7 +59,6 @@ public class UI extends JFrame {
 	private JComboBox<String> gridSizeComboBox;
 	private String selectedSize = "50x50";
 	private JPanel gridPanel;
-	private JLabel gridLabel;
 	
 	Socket socket;
 	DatagramSocket socketUDP;
@@ -154,12 +153,10 @@ public class UI extends JFrame {
 	private void receiveGridNumber(DataInputStream in) throws IOException {
 
 		int m = in.readInt();
-		System.out.println("Selam " + m);
 		selectedSize = m+"x"+m;
 
         int[][]temp = new int[m][m];
     	data = temp;
-    	System.out.println("Selam#### " + m);
     	// Basically just f5 the board. 
     	paintPanel.setVisible(false);
     	paintPanel.setVisible(true);
@@ -253,7 +250,6 @@ public class UI extends JFrame {
 		getContentPane().add(basePanel, BorderLayout.CENTER);
 		basePanel.setLayout(new BorderLayout(0, 0));
 		
-
          
 		// ADD USERNAME
 		// TODO Add Change Username Option
@@ -283,7 +279,6 @@ public class UI extends JFrame {
 
 	            	sendMsg(newUsername);
 	            	
-
 	                // Show components after sending the message
 	                setPanelVisibility(true);
 
@@ -638,7 +633,7 @@ public class UI extends JFrame {
         // Hide components before sending the message
         setPanelVisibility(false);
         
-		this.setSize(new Dimension(800, 600));
+		this.setSize(new Dimension(900, 600));
 		this.setDefaultCloseOperation(EXIT_ON_CLOSE);
 	}
 
@@ -759,7 +754,6 @@ public class UI extends JFrame {
                 	// Show a warning dialog
                     JOptionPane.showMessageDialog(null, "Warning: The grid size does not match the current ("+selectedSize +") grid size. \t"
                     		+ "Please change it to " + rowClear + "x"+rowClear+".", "Warning", JOptionPane.WARNING_MESSAGE);
-         
                 }
 
                 System.out.println("Image data uploaded successfully.");
