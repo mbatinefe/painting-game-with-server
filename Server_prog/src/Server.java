@@ -13,8 +13,6 @@ public class Server {
 	DatagramSocket detectSocket;
 	ArrayList<Socket> list = new ArrayList<Socket>();
 
-	int [][] board = new int[50][50];
-
 	private int userNumber = 0;
 	
 	int serverPort = 56789;
@@ -130,6 +128,9 @@ public class Server {
 			case 2:
 				forwardAreaMessage(in);
 				break;
+			case 3:
+				forwardGridMessage(in);
+				break;
 			default:
 				
 				// others for extra
@@ -137,6 +138,22 @@ public class Server {
 		}
 	}
 
+	private void forwardGridMessage(DataInputStream in) throws IOException{
+		int row = in.readInt();
+
+		synchronized(list) {
+			for (int i = 0; i < list.size(); i++) {
+				
+				Socket s = list.get(i);
+				DataOutputStream out = new DataOutputStream(s.getOutputStream());
+				
+				out.writeInt(5);
+				out.writeInt(row);
+				out.flush();
+			}
+		}
+	}
+	
 
 	private void forwardTextMessage(DataInputStream in) throws IOException {
 		byte[] buffer = new byte[1024];
@@ -202,7 +219,7 @@ public class Server {
 
 				Socket s = list.get(0);
 				DataOutputStream out = new DataOutputStream(s.getOutputStream());
-				
+				// TODO: ASK GRID SIZE AS WELL.
 				out.writeInt(3);
 			}
     		
@@ -210,8 +227,7 @@ public class Server {
 			// TODO Auto-generated catch block
 			e1.printStackTrace(); // REMOVE WHEN U FINISH, ONLY DEBUG
 		}
-
-               
+         
      }
 
 	public static void main(String[] args) throws IOException {
