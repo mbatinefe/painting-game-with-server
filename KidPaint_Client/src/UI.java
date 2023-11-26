@@ -173,8 +173,10 @@ public class UI extends JFrame {
         int[][]temp = new int[m][m];
     	data = temp;
     	
+		paintPanel.setVisible(false);
+		paintPanel.setVisible(true);
     	// Basically just f5 the board. 
-    	refreshPanel();
+    	//refreshPanel();
 		
 	}
   
@@ -204,6 +206,17 @@ public class UI extends JFrame {
         int rowClear = Integer.parseInt(parts[0]);
         int colClear = rowClear;
 
+        try {
+    		// Send grid informatino as well.
+    		out.writeInt(3);
+    		out.writeInt(rowClear);
+    		out.flush();
+			
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+        
 		for (int i = 0; i < rowClear; i++) {
             for (int j = 0; j < colClear; j++) {
                 try {
@@ -221,16 +234,7 @@ public class UI extends JFrame {
                
             }
         }
-        try {
-    		// Send grid informatino as well.
-    		out.writeInt(3);
-    		out.writeInt(rowClear);
-    		out.flush();
-			
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
+
 
 	}
 	
@@ -608,35 +612,43 @@ public class UI extends JFrame {
          
   	    toolPanel.add(gridPanel, BorderLayout.NORTH);
 
-         // Detect changes in selection
-         gridSizeComboBox.addItemListener(new ItemListener() {
-             @Override
-             public void itemStateChanged(ItemEvent e) {
-                 if (e.getStateChange() == ItemEvent.SELECTED) {
-                     selectedSize = (String) gridSizeComboBox.getSelectedItem();
-                     // Split the string using 'x' as the delimiter
-                     String[] parts = selectedSize.split("x");
-                     // Extract the first part and convert it to an integer
-                     int xx = Integer.parseInt(parts[0]);
-                     int yy = xx;
-                     
-                     // Update the data according to new grid information
-                     System.out.println("Selected size: "+ xx + "x" + yy);
-                     int[][]temp = new int[xx][yy];
-                 	 data = temp;
-                 	 
-                 	 try {
-                 		 // Send it to the server
-						out.writeInt(3);
-						out.writeInt(xx);	
-					} catch (IOException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					}
-                 	 
-                 }
-             }
-         }); 
+  	// Detect changes in selection
+  	  gridSizeComboBox.addItemListener(new ItemListener() {
+  	      @Override
+  	      public void itemStateChanged(ItemEvent e) {
+  	          if (e.getStateChange() == ItemEvent.SELECTED) {
+  	              selectedSize = (String) gridSizeComboBox.getSelectedItem();
+  	              // Split the string using 'x' as the delimiter
+  	              String[] parts = selectedSize.split("x");
+  	              // Extract the first part and convert it to an integer
+  	              int xx = Integer.parseInt(parts[0]);
+  	              int yy = xx;
+
+  	              // Ask the user for confirmation
+  	              int response = JOptionPane.showConfirmDialog(null,
+  	                      "Are you sure you want to change the grid size? This will clear the painting.",
+  	                      "Confirmation", JOptionPane.YES_NO_OPTION);
+
+  	              if (response == JOptionPane.YES_OPTION) {
+  	                  // Update the data according to the new grid information
+  	                  System.out.println("Selected size: " + xx + "x" + yy);
+  	                  int[][] temp = new int[xx][yy];
+  	                  data = temp;
+
+  	                  try {
+  	                      // Send it to the server
+  	                      out.writeInt(3);
+  	                      out.writeInt(xx);
+  	                  } catch (IOException e1) {
+  	                      e1.printStackTrace();
+  	                  }
+  	              } else {
+  	                  // If the user clicks 'NO', reset the combo box to the previous selection
+  	                  gridSizeComboBox.setSelectedItem(e.getItem());
+  	              }
+  	          }
+  	      }
+  	  });
 	    
 
 		JPanel msgPanel = new JPanel();
