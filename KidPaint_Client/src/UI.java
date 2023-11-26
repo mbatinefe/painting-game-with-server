@@ -50,24 +50,29 @@ enum PaintMode {
 	Pixel, Area
 };
 
-//TODO: Set Pen size
-//TODO: Set Shape (SQUARE, TRIANGLE) to painting
-//TODO: Set Screen size
+// TODO:What if upload grid is not the same with current grid?
+	// DONE: Give a warning to change current grid to upload.
+// TODO:SYNC grid changes to other clients.
+	// DONE
+
+// PROBLEM: Changing grid information does not work on MAC
 
 public class UI extends JFrame {
-	
-	private JComboBox<String> gridSizeComboBox;
-	private String selectedSize = "50x50";
-	private JPanel gridPanel;
 	
 	Socket socket;
 	DatagramSocket socketUDP;
 	DataInputStream in;
 	DataOutputStream out;
 
+	private JComboBox<String> gridSizeComboBox; // For implementation of grid panel
+	private String selectedSize = "50x50"; // Default selected grid size
+	private JPanel gridPanel; //grid panel
+	
+	// For scrolling option
 	private JScrollPane scrollPaneRight;
 	private JScrollPane scrollPaneLeft;
 	
+	// Other base fields on UI
 	private JTextField msgField;
 	private JTextArea chatArea;
 	private JPanel pnlColorPicker;
@@ -75,10 +80,12 @@ public class UI extends JFrame {
 	private JToggleButton tglPen;
 	private JToggleButton tglBucket;
 
+	// Username information
 	private JTextField usernameField;
 	private JPanel usernamePanel;
 	private JLabel usernameLabel;
 	
+	// Other additional feature fields on UI
 	private JButton saveButton;
 	private JButton uploadButton;
 	private JButton eraserButton;
@@ -89,6 +96,7 @@ public class UI extends JFrame {
 	private static UI instance;
 	private int selectedColor = -543230; // golden
 
+	// Default client number
 	private int userNumber = 0;
 	
 	int[][] data = new int[50][50]; // pixel color data array
@@ -96,6 +104,7 @@ public class UI extends JFrame {
 	int blockSize = 16;
 	PaintMode paintMode = PaintMode.Pixel;
 	private static boolean isEraserActive = false; // Variable to track activation state
+	
 	/**
 	 * get the instance of UI. Singleton design pattern.
 	 * 
@@ -133,12 +142,15 @@ public class UI extends JFrame {
 					receiveAreaMessage(in);
 					break;
 				case 3:
+					// send past data information to other clients
 					sendDataMessage(in);
 					break;
 				case 4:
+					// get the current user ID
 					receiveUserNumber(in);
 					break;
 				case 5:
+					// receive the current grid number
 					receiveGridNumber(in);
 					break;
 				default:
@@ -150,26 +162,31 @@ public class UI extends JFrame {
 		}
 	}
 	
+	// Receive current grid size information from the server
 	private void receiveGridNumber(DataInputStream in) throws IOException {
-
+		
+		// Get the first one since col and row are same
 		int m = in.readInt();
 		selectedSize = m+"x"+m;
 
+		// Create new data size and update data
         int[][]temp = new int[m][m];
     	data = temp;
+    	
     	// Basically just f5 the board. 
     	paintPanel.setVisible(false);
     	paintPanel.setVisible(true);
 		
 	}
   
+	// Read the current User Number of UI
 	private void receiveUserNumber(DataInputStream in) throws IOException {
 		userNumber = in.readInt();
 		System.out.println(userNumber);
 	}
 	
+	// Send the First User's board information in case others join later after drawing something
 	private void sendDataMessage(DataInputStream in) throws IOException {
-		
         // Split the string using 'x' as the delimiter
         String[] parts = selectedSize.split("x");
         // Extract the first part and convert it to an integer
@@ -194,19 +211,19 @@ public class UI extends JFrame {
             }
         }
         try {
-    		// Send grid info as well.
+    		// Send grid informatino as well.
     		out.writeInt(3);
     		out.writeInt(rowClear);
     		out.flush();
 			
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
-			e1.printStackTrace(); // REMOVE WHEN U FINISH, ONLY DEBUG
+			e1.printStackTrace();
 		}
 
 	}
 	
-	
+	// Receive the text informations and add to chat area
 	private void receiveTextMessage(DataInputStream in) throws IOException {
 		byte[] buffer = new byte[1024];
 		int len = in.readInt();
@@ -220,6 +237,7 @@ public class UI extends JFrame {
 		});
 	}
 
+	// Receive the pen information and add to chat area
 	private void receivePixelMessage(DataInputStream in) throws IOException {
 		int color = in.readInt();
 		int x = in.readInt();
@@ -227,6 +245,7 @@ public class UI extends JFrame {
 		paintPixel(color, x, y);
 	}
 	
+	// Receive the bucket information and add to the board area
 	private void receiveAreaMessage(DataInputStream in) throws IOException {
 		int color = in.readInt();
 		int x = in.readInt();
@@ -251,8 +270,7 @@ public class UI extends JFrame {
 		basePanel.setLayout(new BorderLayout(0, 0));
 		
          
-		// ADD USERNAME
-		// TODO Add Change Username Option
+		// ADD USERNAME PANEL
 	    usernamePanel = new JPanel();
 	    getContentPane().add(usernamePanel, BorderLayout.NORTH);
 
@@ -276,7 +294,8 @@ public class UI extends JFrame {
 	            }
 	            System.out.println("Username: " + newUsername);
 	            try {
-
+	            	
+	            	// If username entered, send the broadcast message
 	            	sendMsg(newUsername);
 	            	
 	                // Show components after sending the message
@@ -405,25 +424,29 @@ public class UI extends JFrame {
 	    // START SAVE BUTTON
 	    saveButton = new JButton("Save");
 	    toolPanel.add(saveButton);
-        // Add a Save button listener with a different logic
+        // Add a Save button listener
         saveButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                saveImageDataWithDifferentLogic();
+                saveImageData();
             }
         });
+        // END SAVE BUTTON
 	    
+        // START UPLOAD BUTTON
         uploadButton = new JButton("Upload");
         toolPanel.add(uploadButton);
-        // Add an Upload button listener with a different logic
+        
+        // Add an Upload button listener
         uploadButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                uploadImageDataWithDifferentLogic();
+                uploadImageData();
             }
         });
+        // END UPLOAD BUTTON
         
-        // START SAVE BUTTON
+        // START CLEAR BUTTON
         clearButton = new JButton("Clear");
         toolPanel.add(clearButton);
 
@@ -437,16 +460,19 @@ public class UI extends JFrame {
                 }
             }
         });
+        // END CLEAR BUTTON
+        
+        // START ERASE BUTTON
         
         // Load the eraser image
         BufferedImage originalImage = ImageIO.read(new File("eraser2.png"));
 
         // Resize the image
-        int newWidth = 24;  // Set your desired width
-        int newHeight = 24; // Set your desired height
+        int newWidth = 24;
+        int newHeight = 24;
         Image resizedImage = originalImage.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
 
-        // Create ImageIcon from resized image
+        // Create icon from resized image
         ImageIcon eraserIcon = new ImageIcon(resizedImage);
 
         // Create a button with the eraser image
@@ -454,27 +480,36 @@ public class UI extends JFrame {
         eraserButton.setPreferredSize(new Dimension(newWidth, newHeight));
         eraserButton.setBorder(new LineBorder(Color.BLACK));
 		
-        // Add ActionListener to handle button click
         eraserButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 // Toggle activation state
                 isEraserActive = !isEraserActive;
-                // Update button appearance based on activation state
+
                 if (isEraserActive) {
-                    // If eraser is active make it red with 3 thickness
-                    eraserButton.setBorder(new LineBorder(Color.RED, 3));
+                	// Add border line to indicate eraser is active
+                    eraserButton.setBorder(new LineBorder(Color.RED, 3)); 
+                    
+                    // Store previous color and paintMode
                     pastColor = selectedColor;
                     pastPaintmode = paintMode;
+                    
+                    // Make it invisible because does not make sense to use when eraser is active
                     pnlColorPicker.setVisible(false);
                     tglBucket.setVisible(false);
                     paintMode = PaintMode.Pixel;
-                    selectedColor = 0;
+                    selectedColor = 0; // Make it black
                 } else {
-                    // You can customize the appearance for the inactive state
+                    // Eraser is not active
+                	
+                	// Change border back to normal
                     eraserButton.setBorder(new LineBorder(Color.BLACK));
+                    
+                    // Activate the ones made it not visible
                     pnlColorPicker.setVisible(true);
                     tglBucket.setVisible(true);
+                    
+                    // Change back to previous settings
                     selectedColor = pastColor;
                     paintMode = pastPaintmode;
 
@@ -485,9 +520,11 @@ public class UI extends JFrame {
             }
         });
 		
-        // Add the clearPanel to your toolPanel
+        // Add the clearPanel to toolPanel
         toolPanel.add(eraserButton);
 
+        // END ERASE BUTTON
+        
 		pnlColorPicker = new JPanel();
 		pnlColorPicker.setPreferredSize(new Dimension(24, 24));
 		pnlColorPicker.setBackground(new Color(selectedColor));
@@ -554,14 +591,14 @@ public class UI extends JFrame {
 		
     	// ADD GRID
  		gridPanel = new JPanel();	    
- 	    // Create a dropdown button with grid size options
+ 	    // Dropdown button with grid size options
          String[] gridSizeOptions = generateGridSizeOptions(3, 50);
          gridSizeComboBox = new JComboBox<>(gridSizeOptions);
          gridPanel.add(gridSizeComboBox);
          
   	    toolPanel.add(gridPanel, BorderLayout.NORTH);
 
-         // Add an item listener to detect changes in selection
+         // Detect changes in selection
          gridSizeComboBox.addItemListener(new ItemListener() {
              @Override
              public void itemStateChanged(ItemEvent e) {
@@ -573,6 +610,7 @@ public class UI extends JFrame {
                      int xx = Integer.parseInt(parts[0]);
                      int yy = xx;
                      
+                     // Update the data according to new grid information
                      System.out.println("Selected size: "+ xx + "x" + yy);
                      int[][]temp = new int[xx][yy];
                  	 data = temp;
@@ -630,7 +668,7 @@ public class UI extends JFrame {
 		scrollPaneRight.setPreferredSize(new Dimension(300, this.getHeight()));
 		msgPanel.add(scrollPaneRight, BorderLayout.CENTER);
 
-        // Hide components before sending the message
+        // Hide components before sending the broadcast message and connection
         setPanelVisibility(false);
         
 		this.setSize(new Dimension(900, 600));
@@ -650,36 +688,7 @@ public class UI extends JFrame {
 		});
 	}
 
-    // Different logic for saving image data
-    private void saveImageDataWithDifferentLogic() {
-        JFileChooser fileChooser = new JFileChooser();
-        if (fileChooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
-            try (DataOutputStream dos = new DataOutputStream(new FileOutputStream(fileChooser.getSelectedFile()))) {
-                
-                // Display grid size information before saving
-                System.out.println("Saving image data with grid size information...");
-
-                // Write the grid size to the file
-                dos.writeInt(data.length);  // Assuming data is a 2D array
-                dos.writeInt(data[0].length);
-                
-            	// Serialize and write the pixel data array
-                writeIntArray2D(dos, data);
-                // Write the block size
-                dos.writeInt(blockSize);
-                // Write the selected color
-                dos.writeInt(selectedColor);
-                // Write the paint mode
-                dos.writeUTF(paintMode.name());
-
-                System.out.println("Image data saved successfully.");
-            } catch (IOException ex) {
-                ex.printStackTrace();
-                System.err.println("Error saving image data.");
-            }
-        }
-    }
-    
+	// Clear the whole painting by writing black to everywhere of data
     private void clearPaint() {
         // Split the string using 'x' as the delimiter
         String[] parts = selectedSize.split("x");
@@ -701,7 +710,7 @@ public class UI extends JFrame {
 
 				} catch (IOException e1) {
 					// TODO Auto-generated catch block
-					e1.printStackTrace(); // REMOVE WHEN U FINISH, ONLY DEBUG
+					e1.printStackTrace();
 				}
                
             }
@@ -709,8 +718,39 @@ public class UI extends JFrame {
     	paintPanel.repaint();
     	
     }
-    // Different logic for uploading image data
-    private void uploadImageDataWithDifferentLogic() {
+    
+    // Different logic for saving image data
+    private void saveImageData() {
+        JFileChooser fileChooser = new JFileChooser();
+        if (fileChooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
+            try (DataOutputStream dos = new DataOutputStream(new FileOutputStream(fileChooser.getSelectedFile()))) {
+                
+                // Display grid size information before saving
+                System.out.println("Saving image data with grid size information...");
+
+                // Write the grid size to the file
+                dos.writeInt(data.length);
+                dos.writeInt(data[0].length);
+                
+            	// Serialize and write the pixel data array
+                writeIntArray2D(dos, data);
+                // Write the block size
+                dos.writeInt(blockSize);
+                // Write the selected color
+                dos.writeInt(selectedColor);
+                // Write the paint mode
+                dos.writeUTF(paintMode.name());
+
+                System.out.println("Image data saved successfully.");
+            } catch (IOException ex) {
+                ex.printStackTrace();
+                System.err.println("Error saving image data.");
+            }
+        }
+    }
+    
+    // Upload image data
+    private void uploadImageData() {
         JFileChooser fileChooser = new JFileChooser();
         if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
             try (DataInputStream dis = new DataInputStream(new FileInputStream(fileChooser.getSelectedFile()))) {
@@ -745,13 +785,13 @@ public class UI extends JFrame {
 	
 	        				} catch (IOException e1) {
 	        					// TODO Auto-generated catch block
-	        					e1.printStackTrace(); // REMOVE WHEN U FINISH, ONLY DEBUG
+	        					e1.printStackTrace();
 	        				}
 	                       
 	                    }
 	                }
                 } else {
-                	// Show a warning dialog
+                	// Show a warning dialog if current grid size does not match with file's grid size
                     JOptionPane.showMessageDialog(null, "Warning: The grid size does not match the current ("+selectedSize +") grid size. \t"
                     		+ "Please change it to " + rowClear + "x"+rowClear+".", "Warning", JOptionPane.WARNING_MESSAGE);
                 }
@@ -764,7 +804,7 @@ public class UI extends JFrame {
         }
     }
 
-    // Helper method to write a 2D integer array to DataOutputStream
+    // Write a 2D integer array to DataOutputStream
     private void writeIntArray2D(DataOutputStream dos, int[][] array) throws IOException {
         for (int[] row : array) {
             for (int value : row) {
@@ -773,7 +813,7 @@ public class UI extends JFrame {
         }
     }
 
-    // Helper method to read a 2D integer array from DataInputStream
+    // Read a 2D integer array from DataInputStream
     private int[][] readIntArray2D(DataInputStream dis) throws IOException {
         // Split the string using 'x' as the delimiter
         String[] parts = selectedSize.split("x");
@@ -798,13 +838,11 @@ public class UI extends JFrame {
 	 * @throws IOException
 	 */
 	private void onTextInputted(String text) {
-		// chatArea.setText(chatArea.getText() + text + "\n");
 
 		try {
 
 			out.writeInt(0);// 0 means this is a chat message
-//			System.out.println(0); 
-			// activate print while debugging
+
 			String username = usernameField.getText();
 			String messageToSend;
 
@@ -896,14 +934,10 @@ public class UI extends JFrame {
 		if (col >= data.length || row >= data[0].length)
 			return filledPixels;
 		
-		
-		//System.out.println("Starting to Paint Area 2");
-
 		int oriColor = data[col][row];
 		LinkedList<Point> buffer = new LinkedList<Point>();
 
 		if (oriColor != color) {
-			//System.out.println("Starting to Paint Area 3");
 			buffer.add(new Point(col, row));
 
 			while (!buffer.isEmpty()) {
@@ -926,10 +960,9 @@ public class UI extends JFrame {
 				if (y < data[0].length - 1 && data[x][y + 1] == oriColor)
 					buffer.add(new Point(x, y + 1));
 			}
-			//System.out.println("Starting to Paint Area 4");
+
 			paintPanel.repaint();
 		}
-		//System.out.println("Not starting to paint 5");
 		return filledPixels;
 	}
 	
@@ -942,11 +975,13 @@ public class UI extends JFrame {
 	
 	private void sendMsg(String username) throws IOException {
 		
+		// Create UDP socket with port 12345
 		socketUDP = new DatagramSocket(12345);
 		
+		// Destination is broadcast address
 		InetAddress destination = InetAddress.getByName("255.255.255.255");
-		// String str = usernameField.getText();
-		String str = username;
+		String str = username;	// Get the username information to str
+
 		DatagramPacket packet = new DatagramPacket(str.getBytes(), str.length(), destination, 45678);
 		socketUDP.send(packet);
         System.out.println("\nBroadcast message sent...\n");
@@ -963,7 +998,7 @@ public class UI extends JFrame {
 		// Extract data from the packet
         byte[] combinedData = receivePacket.getData();
         
-        // Determine the size of dataA dynamically
+        // Determine the size of dataA
         int dataASize = InetAddress.getByName("0.0.0.0").getAddress().length;
         
         byte[] dataA = new byte[dataASize];
@@ -975,7 +1010,7 @@ public class UI extends JFrame {
         // Convert dataA to InetAddress
         InetAddress addr = InetAddress.getByAddress(dataA);
 
-        // Convert dataB to int
+        // Convert dataB to int to get port number
         int port = Integer.parseInt(new String(dataB).trim());
 
         // Now you have A and B
@@ -987,11 +1022,10 @@ public class UI extends JFrame {
 		InetAddress senderAddress = addr;
 		int senderPort = port;
 		
-		socketUDP.close();
+		socketUDP.close(); // Close UDP connection
 
 		try {
-			// Start new connection to the server.
-			// TODO: Change to senderPort, after you work out port
+			// Start new connection to the server. With received server infos
 			Socket socket = new Socket(senderAddress, senderPort);
 
 			System.out.println("\nTCP Connection established.");
@@ -1027,7 +1061,7 @@ public class UI extends JFrame {
 	    return options;
 	}
 	
-	// Set visibility of components method
+	// Set visibility of components method before broadcast msg and after broadcast msg
 	private void setPanelVisibility(boolean visible) {
 	    paintPanel.setVisible(visible);
 	    pnlColorPicker.setVisible(visible);
