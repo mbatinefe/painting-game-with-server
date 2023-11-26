@@ -79,14 +79,16 @@ public class Server {
 			try {
 				out.writeInt(4);
 				out.writeInt(userNumber);
-				out.flush();
 			} catch (IOException e4) {
 				e4.printStackTrace(); 
 			}
-			
+
 			// If it is not the first client
-			if(userNumber > 1) {
+			if(userNumber > 1) {	
+				askGridMessage();
+				out.flush();
 	    		askBoardMessage();
+	    		out.flush();
 			}
 		    // Create a thread to handle continuous updates from the client
 		    Thread t = new Thread(() -> {
@@ -176,6 +178,7 @@ public class Server {
 				out.writeInt(0);
 				out.writeInt(len);
 				out.write(buffer, 0, len);
+				out.flush();
 			}
 		}
 	}
@@ -221,9 +224,8 @@ public class Server {
 		}
 	}
 	
-	// Ask first users' board
-	private void askBoardMessage() throws IOException{
-		
+	// Ask first users' grid
+	private void askGridMessage() throws IOException{
         try {
     		synchronized(list) {
 
@@ -232,7 +234,24 @@ public class Server {
 				
 				// Send first user's board to others who joined later
 				out.writeInt(3);
-				out.flush();
+			}
+    		
+		} catch (IOException e1) {
+			
+			e1.printStackTrace();
+		}
+	}
+	
+	// Ask first users' board
+	private void askBoardMessage() throws IOException{
+        try {
+    		synchronized(list) {
+
+				Socket s = list.get(0);
+				DataOutputStream out = new DataOutputStream(s.getOutputStream());
+				
+				// Send first user's board to others who joined later
+				out.writeInt(3);
 			}
     		
 		} catch (IOException e1) {
