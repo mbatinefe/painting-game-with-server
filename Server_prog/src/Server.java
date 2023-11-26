@@ -79,6 +79,7 @@ public class Server {
 			try {
 				out.writeInt(4);
 				out.writeInt(userNumber);
+				out.flush();
 			} catch (IOException e4) {
 				e4.printStackTrace(); 
 			}
@@ -231,6 +232,7 @@ public class Server {
 				
 				// Send first user's board to others who joined later
 				out.writeInt(3);
+				out.flush();
 			}
     		
 		} catch (IOException e1) {
