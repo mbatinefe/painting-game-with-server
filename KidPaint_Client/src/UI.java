@@ -47,7 +47,7 @@ import java.awt.Color;
 import javax.swing.border.LineBorder;
 
 enum PaintMode {
-	Pixel, Area
+	Pixel, Area, Brush, Pixel3, Pixel5
 };
 
 // TODO:What if upload grid is not the same with current grid?
@@ -80,6 +80,10 @@ public class UI extends JFrame {
 	private JPanel paintPanel;
 	private JToggleButton tglPen;
 	private JToggleButton tglBucket;
+	private JToggleButton tglPen2;
+	private JToggleButton tglPen3;
+	private JToggleButton tglPen4;
+
 
 	// Username information
 	private JTextField usernameField;
@@ -96,6 +100,8 @@ public class UI extends JFrame {
 	private PaintMode pastPaintmode;
 	private static UI instance;
 	private int selectedColor = -543230; // golden
+	
+	private String selectedPenSize = "1x1";
 
 	// Default client number
 	private int userNumber = 0;
@@ -434,6 +440,88 @@ public class UI extends JFrame {
 						// TODO Auto-generated catch block
 						e1.printStackTrace(); // REMOVE WHEN U FINISH, ONLY DEBUG
 					}
+				if (paintMode == PaintMode.Brush && e.getX() >= 0 && e.getY() >= 0)
+					// paintPixel(e.getX() / blockSize, e.getY() / blockSize);
+					try {
+						System.out.println(e.getX() + "X" + e.getY());
+						
+
+						for(int i = -1; i <= 1; i++) {
+							for(int j = -1; j <= 1; j++) {
+								if(((e.getY()+j*blockSize) >= 0) && ((e.getX()+j*blockSize) >= 0)) {
+									out.writeInt(1);
+									out.writeInt(selectedColor);
+									out.writeInt((e.getX()+j*blockSize)/blockSize);
+									out.writeInt((e.getY()+j*blockSize)/blockSize);
+									out.flush();
+								}
+
+								
+							}
+						}
+
+
+					} catch (IOException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace(); // REMOVE WHEN U FINISH, ONLY DEBUG
+					}
+				if (paintMode == PaintMode.Pixel3 && e.getX() >= 0 && e.getY() >= 0)
+					// paintPixel(e.getX() / blockSize, e.getY() / blockSize);
+					try {
+						System.out.println(e.getX() + "X" + e.getY());
+						
+						int pixel3Radius = 3;
+						
+
+						for(int i = -pixel3Radius; i <= pixel3Radius; i++) {
+							for(int j = -pixel3Radius; j <= pixel3Radius; j++) {
+								if(i*i + j*j <= pixel3Radius) {
+									if(((e.getY()+j*blockSize) >= 0) && ((e.getX()+i*blockSize) >= 0)) {
+										out.writeInt(1);
+										out.writeInt(selectedColor);
+										out.writeInt((e.getX()+i*blockSize)/blockSize);
+										out.writeInt((e.getY()+j*blockSize)/blockSize);
+										out.flush();
+									}
+								}
+
+							}
+						}
+					
+
+
+					} catch (IOException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace(); // REMOVE WHEN U FINISH, ONLY DEBUG
+					}
+				if (paintMode == PaintMode.Pixel5 && e.getX() >= 0 && e.getY() >= 0)
+					// paintPixel(e.getX() / blockSize, e.getY() / blockSize);
+					try {
+						System.out.println(e.getX() + "X" + e.getY());
+						
+						int pixel5Radius = 5;
+						
+						for(int i = -pixel5Radius; i <= pixel5Radius; i++) {
+							for(int j = -pixel5Radius; j <= pixel5Radius; j++) {
+								if(i*i + j*j <= pixel5Radius) {
+									if(((e.getY()+j*blockSize) >= 0) && ((e.getX()+i*blockSize) >= 0)) {
+										out.writeInt(1);
+										out.writeInt(selectedColor);
+										out.writeInt((e.getX()+i*blockSize)/blockSize);
+										out.writeInt((e.getY()+j*blockSize)/blockSize);
+										out.flush();
+									}
+								}
+
+							}
+						}
+					
+
+
+					} catch (IOException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace(); // REMOVE WHEN U FINISH, ONLY DEBUG
+					}
 			}
 
 			@Override
@@ -530,6 +618,9 @@ public class UI extends JFrame {
                     // Make it invisible because does not make sense to use when eraser is active
                     pnlColorPicker.setVisible(false);
                     tglBucket.setVisible(false);
+                    tglPen2.setVisible(false);
+                    tglPen3.setVisible(false);
+                    tglPen4.setVisible(false);
                     paintMode = PaintMode.Pixel;
                     selectedColor = 0; // Make it black
                 } else {
@@ -541,7 +632,9 @@ public class UI extends JFrame {
                     // Activate the ones made it not visible
                     pnlColorPicker.setVisible(true);
                     tglBucket.setVisible(true);
-                    
+                    tglPen2.setVisible(true);
+                    tglPen3.setVisible(true);
+                    tglPen4.setVisible(true);
                     // Change back to previous settings
                     selectedColor = pastColor;
                     paintMode = pastPaintmode;
@@ -597,15 +690,70 @@ public class UI extends JFrame {
 		tglPen = new JToggleButton("Pen");
 		tglPen.setSelected(true);
 		toolPanel.add(tglPen);
-
+		
+		tglPen3 = new JToggleButton("Pen(3px)");
+		tglPen3.setSelected(false);
+		toolPanel.add(tglPen3);
+		
+		tglPen4 = new JToggleButton("Pen(5px)");
+		tglPen4.setSelected(false);
+		toolPanel.add(tglPen4);
+		
+		tglPen2 = new JToggleButton("Brush");
+		tglPen2.setSelected(false);
+		toolPanel.add(tglPen2);
+		
 		tglBucket = new JToggleButton("Bucket");
 		toolPanel.add(tglBucket);
+		
+		// change the paint mode to BRUSH mode
+		tglPen3.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				tglPen3.setSelected(true);
+				tglPen2.setSelected(false);
+				tglPen4.setSelected(false);
+				tglPen.setSelected(false);
+				tglBucket.setSelected(false);
+				paintMode = PaintMode.Pixel3;
+			}
+		});
+		
+		// change the paint mode to BRUSH mode
+		tglPen4.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				tglPen4.setSelected(true);
+				tglPen3.setSelected(false);
+				tglPen2.setSelected(false);
+				tglPen.setSelected(false);
+				tglBucket.setSelected(false);
+				paintMode = PaintMode.Pixel5;
+			}
+		});
 
 
+		
+		// change the paint mode to BRUSH mode
+		tglPen2.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				tglPen2.setSelected(true);
+				tglPen3.setSelected(false);
+				tglPen4.setSelected(false);
+				tglPen.setSelected(false);
+				tglBucket.setSelected(false);
+				paintMode = PaintMode.Brush;
+			}
+		});
+		
 		// change the paint mode to PIXEL mode
 		tglPen.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
+				tglPen2.setSelected(false);
+				tglPen3.setSelected(false);
+				tglPen4.setSelected(false);
 				tglPen.setSelected(true);
 				tglBucket.setSelected(false);
 				paintMode = PaintMode.Pixel;
@@ -616,7 +764,10 @@ public class UI extends JFrame {
 		tglBucket.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
+				tglPen2.setSelected(false);
 				tglPen.setSelected(false);
+				tglPen3.setSelected(false);
+				tglPen4.setSelected(false);
 				tglBucket.setSelected(true);
 				paintMode = PaintMode.Area;
 			}
@@ -713,7 +864,7 @@ public class UI extends JFrame {
         // Hide components before sending the broadcast message and connection
         setPanelVisibility(false);
         
-		this.setSize(new Dimension(900, 600));
+		this.setSize(new Dimension(1100, 600));
 		this.setDefaultCloseOperation(EXIT_ON_CLOSE);
 	}
 
@@ -1108,6 +1259,9 @@ public class UI extends JFrame {
 	    paintPanel.setVisible(visible);
 	    pnlColorPicker.setVisible(visible);
 	    tglPen.setVisible(visible);
+	    tglPen2.setVisible(visible);
+	    tglPen3.setVisible(visible);
+	    tglPen4.setVisible(visible);
 	    tglBucket.setVisible(visible);
 	    msgField.setVisible(visible);
 	    scrollPaneLeft.setVisible(visible);
