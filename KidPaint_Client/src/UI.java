@@ -1,3 +1,4 @@
+// https://github.com/mbatinefe/Painting_Client_Server.git
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -49,14 +50,6 @@ import javax.swing.border.LineBorder;
 enum PaintMode {
 	Pixel, Area, Brush, Pixel3, Pixel5
 };
-
-// TODO:What if upload grid is not the same with current grid?
-	// DONE: Give a warning to change current grid to upload.
-// TODO:SYNC grid changes to other clients.
-	// DONE
-// TODO:Changing grid information does not work on MAC
-	// DONE
- 
 
 public class UI extends JFrame {
 	
@@ -619,9 +612,17 @@ public class UI extends JFrame {
                     pnlColorPicker.setVisible(false);
                     tglBucket.setVisible(false);
                     tglPen2.setVisible(false);
-                    tglPen3.setVisible(false);
-                    tglPen4.setVisible(false);
-                    paintMode = PaintMode.Pixel;
+                    if(tglPen.isSelected()) {
+                    	paintMode = PaintMode.Pixel;
+                    }else if(tglPen3.isSelected()) {
+                    	paintMode = PaintMode.Pixel3;
+                    }else if(tglPen4.isSelected()) {
+                    	paintMode = PaintMode.Pixel5;
+                    }else {
+                    	tglPen.setSelected(true);
+                    	paintMode = PaintMode.Pixel;
+                    }
+                    
                     selectedColor = 0; // Make it black
                 } else {
                     // Eraser is not active
@@ -633,8 +634,11 @@ public class UI extends JFrame {
                     pnlColorPicker.setVisible(true);
                     tglBucket.setVisible(true);
                     tglPen2.setVisible(true);
-                    tglPen3.setVisible(true);
-                    tglPen4.setVisible(true);
+                    
+                    if(pastPaintmode !=  PaintMode.Pixel) {
+                        tglPen.setSelected(false);
+                    }
+                    
                     // Change back to previous settings
                     selectedColor = pastColor;
                     paintMode = pastPaintmode;
