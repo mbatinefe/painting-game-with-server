@@ -54,8 +54,8 @@ enum PaintMode {
 	// DONE: Give a warning to change current grid to upload.
 // TODO:SYNC grid changes to other clients.
 	// DONE
-
-// PROBLEM: Changing grid information does not work on MAC
+// TODO: Changing grid information does not work on MAC
+	// DONE
 
 public class UI extends JFrame {
 	
@@ -174,11 +174,22 @@ public class UI extends JFrame {
     	data = temp;
     	
     	// Basically just f5 the board. 
-    	paintPanel.setVisible(false);
-    	paintPanel.setVisible(true);
+    	refreshPanel();
 		
 	}
   
+	private void refreshPanel() {
+		SwingUtilities.invokeLater(new Runnable() {
+	        @Override
+	        public void run() {
+				paintPanel.setVisible(false);
+				paintPanel.setVisible(true);
+	        }
+			
+			
+		});
+	}
+	
 	// Read the current User Number of UI
 	private void receiveUserNumber(DataInputStream in) throws IOException {
 		userNumber = in.readInt();
@@ -251,7 +262,6 @@ public class UI extends JFrame {
 		int x = in.readInt();
 		int y = in.readInt();
 
-		// System.out.println("Color: " + color + ", X: " + x +", Y: " + y);
 		paintArea(color, x, y);
 	}
 
