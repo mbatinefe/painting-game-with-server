@@ -69,6 +69,8 @@ public class Server {
 		while (true) {
 			Socket cSocket = srvSocket.accept();
 			System.out.println("\nTCP Connection established.");
+			
+			// Client connected to the server, implement its number
 			userNumber++;
 			System.out.println("User number:" + userNumber);
 			
@@ -81,6 +83,7 @@ public class Server {
 				e4.printStackTrace(); 
 			}
 			
+			// If it is not the first client
 			if(userNumber > 1) {
 	    		askBoardMessage();
 			}
@@ -138,15 +141,18 @@ public class Server {
 		}
 	}
 
+	// Forward grid measure message to clients
 	private void forwardGridMessage(DataInputStream in) throws IOException{
 		int row = in.readInt();
-
+		
+		// Get the row information, col information is same with row.
 		synchronized(list) {
 			for (int i = 0; i < list.size(); i++) {
 				
 				Socket s = list.get(i);
 				DataOutputStream out = new DataOutputStream(s.getOutputStream());
 				
+				// Send the row information to other clients
 				out.writeInt(5);
 				out.writeInt(row);
 				out.flush();
@@ -154,7 +160,7 @@ public class Server {
 		}
 	}
 	
-
+	// Forward chat message to clients
 	private void forwardTextMessage(DataInputStream in) throws IOException {
 		byte[] buffer = new byte[1024];
 		int len = in.readInt();
@@ -173,6 +179,7 @@ public class Server {
 		}
 	}
 	
+	// Forward pen message to clients
 	private void forwardDrawingMessage(DataInputStream in) throws IOException{
 		int color = in.readInt();
 		int x = in.readInt();
@@ -193,6 +200,7 @@ public class Server {
 		}
 	}
 	
+	// Forward bucket message to clients
 	private void forwardAreaMessage(DataInputStream in) throws IOException{
 		int color = in.readInt();
 		int x = in.readInt();
@@ -212,6 +220,7 @@ public class Server {
 		}
 	}
 	
+	// Ask first users' board
 	private void askBoardMessage() throws IOException{
 		
         try {
@@ -219,13 +228,14 @@ public class Server {
 
 				Socket s = list.get(0);
 				DataOutputStream out = new DataOutputStream(s.getOutputStream());
-				// TODO: ASK GRID SIZE AS WELL.
+				
+				// Send first user's board to others who joined later
 				out.writeInt(3);
 			}
     		
 		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace(); // REMOVE WHEN U FINISH, ONLY DEBUG
+			
+			e1.printStackTrace();
 		}
          
      }
