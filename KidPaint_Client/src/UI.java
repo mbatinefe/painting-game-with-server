@@ -54,8 +54,9 @@ enum PaintMode {
 	// DONE: Give a warning to change current grid to upload.
 // TODO:SYNC grid changes to other clients.
 	// DONE
-// TODO: Changing grid information does not work on MAC
+// TODO:Changing grid information does not work on MAC
 	// DONE
+ 
 
 public class UI extends JFrame {
 	
@@ -153,6 +154,9 @@ public class UI extends JFrame {
 					// receive the current grid number
 					receiveGridNumber(in);
 					break;
+				case 6:
+					// send Grid Message
+					sendGridMessage(in);
 				default:
 					// others
 				}
@@ -199,7 +203,7 @@ public class UI extends JFrame {
 	}
 	
 	// Send the First User's board information in case others join later after drawing something
-	private void sendDataMessage(DataInputStream in) throws IOException {
+	private void sendGridMessage(DataInputStream in) throws IOException {
         // Split the string using 'x' as the delimiter
         String[] parts = selectedSize.split("x");
         // Extract the first part and convert it to an integer
@@ -216,7 +220,22 @@ public class UI extends JFrame {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-        
+     
+	}
+	
+	// Send the First User's board information in case others join later after drawing something
+	private void sendDataMessage(DataInputStream in) throws IOException {
+        // Split the string using 'x' as the delimiter
+        String[] parts = selectedSize.split("x");
+        // Extract the first part and convert it to an integer
+        int rowClear = Integer.parseInt(parts[0]);
+        int colClear = rowClear;
+
+		// Send grid informatino as well.
+		out.writeInt(3);
+		out.writeInt(rowClear);
+		out.flush();
+		
 		for (int i = 0; i < rowClear; i++) {
             for (int j = 0; j < colClear; j++) {
                 try {
@@ -639,6 +658,7 @@ public class UI extends JFrame {
   	                      // Send it to the server
   	                      out.writeInt(3);
   	                      out.writeInt(xx);
+  	                      out.flush();
   	                  } catch (IOException e1) {
   	                      e1.printStackTrace();
   	                  }
